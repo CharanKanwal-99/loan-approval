@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Loan Approval </title>
+    </head>
+    <body>
+        <h1> Enter Financial Information Below </h1>
+        <h2> Form </h2>
+        <form action="/prediction" method = "post">
+           {% csrf_token %}
+           {{form.as_p}}
+           <input type="submit" value="Submit">
+        </form>
+    </body>
+</html>
