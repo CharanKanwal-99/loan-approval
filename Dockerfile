@@ -3,4 +3,4 @@ RUN mkdir /App
 WORKDIR /App
 COPY . /App
 RUN pip install -r requirements.txt
-CMD python manage.py run server
+CMD ["python","manage.py","runserver"]
