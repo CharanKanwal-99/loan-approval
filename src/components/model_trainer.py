@@ -63,25 +63,75 @@ class ModelTrainer():
 
 
 
-    def initiate_model_training(self,X_train,X_test,Y_train,Y_test):
+
+     def initiate_model_training(self,X_train,X_test,Y_train,Y_test):
         """
         Method Name: initiate_model_training
         Description:Trains the different models on the training data and performs model selection on test data.
         Output: Does not return anything but stores the best performing model in the relevant directory.
         """
+        models = {
+                "Random Forest": RandomForestRegressor(),
+                "Decision Tree": DecisionTreeRegressor(),
+                "Gradient Boosting": GradientBoostingRegressor(),
+                "Linear Regression": LinearRegression(),
+                "XGBRegressor": XGBRegressor(),
+                "AdaBoost Regressor": AdaBoostRegressor(),}
+        params={
+                "Decision Tree": {
+                    'criterion':['squared_error', 'friedman_mse', 'absolute_error', 'poisson'],
+                    # 'splitter':['best','random'],
+                    # 'max_features':['sqrt','log2'],
+                },
+                "Random Forest":{
+                    'n_estimators': [ 20, 40, 80, 100],'max_depth': [ 5, 10, 20],'min_samples_split': [2, 4, 8, 12]
+                },
+                "Gradient Boosting":{
+                    # 'loss':['squared_error', 'huber', 'absolute_error', 'quantile'],
+                    'learning_rate':[.1,.01,.05,.001],
+                    'subsample':[0.6,0.7,0.75,0.8,0.85,0.9],
+                    # 'criterion':['squared_error', 'friedman_mse'],
+                    # 'max_features':['auto','sqrt','log2'],
+                    'n_estimators': [8,16,32,64,128,256]
+                },
+                "Linear Regression":{},
+                "XGBRegressor":{
+                    'learning_rate':[.1,.01,.05,.001],
+                    'n_estimators': [8,16,32,64,128,256]
+                },
+            
+                "AdaBoost Regressor":{
+                    'learning_rate':[.1,.01,0.5,.001],
+                    # 'loss':['linear','square','exponential'],
+                    'n_estimators': [8,16,32,64,128,256]
+                }
+                
+            }
 
-        try:
-            models = {
-            'RandomForest': RandomForestClassifier(),
-            'LogisticRegressor': LogisticRegression(),
-            'XgBoost', XGBClassifier(),
-            'LightGBM', LightGBM(),}
-        
-            evaluate_model(X_train,X_test,Y_train,Y_test,models)
-        
-            save_object(best_model, self.model_trainer_config.model_file_path)
-            logging.info("The best performing model has been saved in the relevant directory")
+        report =evaluate_model(X_train,Y_train,X_test,Y_test,models,params)
+            
+            ## To get best model score from dict
+        best_model_score = max(sorted(report.values()))
 
-        except Exception as e:
-            raise CustomException(e,sys)
+            ## To get best model name from dict
+
+        best_model_name = list(report.keys())[
+                list(report.values()).index(best_model_score)
+            ]
+        
+        best_model = models[best_model_name]
+        #if best_model_score<0.6:
+            #raise CustomException("No best model found")
+            #logging.info(f"Best found model on both training and testing dataset")
+
+            #save_object(
+                #file_path=self.model_trainer_config.trained_model_file_path,
+                #obj=best_model
+            #)
+
+        predicted=best_model.predict(X_test)
+        predicted = predicted.astype('int64')
+
+        accuracy = accuracy_score(Y_test, predicted)
+        return accuracy
     
